@@ -3,69 +3,55 @@ package com.example.mediaplayer;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.widget.Button;
-import android.widget.Toast;
-import android.widget.VideoView;
-import androidx.annotation.Nullable;
+import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
 
-/**
- * Q2: Media Player Application
- * Developed by: Purvi Aneja
- */
 public class MainActivity extends AppCompatActivity {
-
-    private VideoView mediaDisplay;
-    private Button btnOpenFile, btnOpenURL, btnPlay, btnPause, btnStop, btnRestart;
-
-    // Direct URL for video streaming requirement
-    private String streamUrl = "https://www.w3schools.com/html/mov_bbb.mp4";
+    private VideoView videoView;
+    private EditText editUrl;
+    private static final int PICK_FILE_REQUEST = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mediaDisplay = findViewById(R.id.mediaDisplay);
-        btnOpenFile = findViewById(R.id.btnOpenFile);
-        btnOpenURL = findViewById(R.id.btnOpenURL);
-        btnPlay = findViewById(R.id.btnPlay);
-        btnPause = findViewById(R.id.btnPause);
-        btnStop = findViewById(R.id.btnStop);
-        btnRestart = findViewById(R.id.btnRestart);
+        videoView = findViewById(R.id.videoView);
+        editUrl = findViewById(R.id.editUrl);
 
-        // a) Play from disk
-        btnOpenFile.setOnClickListener(v -> {
+        // Buttons for selecting and loading
+        findViewById(R.id.btnOpenFile).setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.setType("video/* audio/*");
-            startActivityForResult(intent, 10);
+            intent.setType("video/* audio/*"); // Helps filter for media
+            startActivityForResult(intent, PICK_FILE_REQUEST);
         });
 
-        // b) Stream from URL
-        btnOpenURL.setOnClickListener(v -> {
-            mediaDisplay.setVideoURI(Uri.parse(streamUrl));
-            mediaDisplay.start();
-            Toast.makeText(this, "Streaming...", Toast.LENGTH_SHORT).show();
+        findViewById(R.id.btnLoadUrl).setOnClickListener(v -> {
+            String url = editUrl.getText().toString();
+            if (!url.isEmpty()) {
+                videoView.setVideoURI(Uri.parse(url));
+                videoView.start();
+            }
         });
 
-        btnPlay.setOnClickListener(v -> mediaDisplay.start());
-        btnPause.setOnClickListener(v -> mediaDisplay.pause());
-        btnStop.setOnClickListener(v -> {
-            mediaDisplay.stopPlayback();
-            mediaDisplay.resume();
-        });
-        btnRestart.setOnClickListener(v -> {
-            mediaDisplay.seekTo(0);
-            mediaDisplay.start();
+        // Playback controls
+        findViewById(R.id.btnPlay).setOnClickListener(v -> videoView.start());
+        findViewById(R.id.btnPause).setOnClickListener(v -> videoView.pause());
+        findViewById(R.id.btnStop).setOnClickListener(v -> videoView.stopPlayback());
+        findViewById(R.id.btnRestart).setOnClickListener(v -> {
+            videoView.seekTo(0);
+            videoView.start();
         });
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 10 && resultCode == RESULT_OK && data != null) {
-            mediaDisplay.setVideoURI(data.getData());
-            mediaDisplay.start();
+        if (requestCode == PICK_FILE_REQUEST && resultCode == RESULT_OK && data != null) {
+            Uri fileUri = data.getData();
+            videoView.setVideoURI(fileUri);
+            videoView.start();
+            Toast.makeText(this, "Playing Selected File", Toast.LENGTH_SHORT).show();
         }
     }
 }
