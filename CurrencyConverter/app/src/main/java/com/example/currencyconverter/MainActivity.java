@@ -5,82 +5,82 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.*;
-
 import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
-
-    Spinner from, to;
-    EditText amount;
-    TextView result, title;
-    Button convert;
-
-    String[] currencies = {"INR", "USD", "EUR", "JPY"};
+    RelativeLayout mainLayout;
+    TextView titleText, resultText, equalSign;
+    EditText amountInput;
+    Button convertBtn;
+    ImageView settingsBtn;
+    Spinner spinnerFrom, spinnerTo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // THEME APPLY
-        SharedPreferences prefs = getSharedPreferences("settings", MODE_PRIVATE);
-        boolean isDark = prefs.getBoolean("darkMode", false);
+        mainLayout = findViewById(R.id.mainLayout);
+        titleText = findViewById(R.id.titleText);
+        resultText = findViewById(R.id.resultText);
+        equalSign = findViewById(R.id.equalSign);
+        amountInput = findViewById(R.id.amountInput);
+        convertBtn = findViewById(R.id.convertBtn);
+        settingsBtn = findViewById(R.id.settingsBtn);
+        spinnerFrom = findViewById(R.id.spinnerFrom);
+        spinnerTo = findViewById(R.id.spinnerTo);
 
-        LinearLayout root = findViewById(R.id.rootLayout);
+        String[] options = {"INR", "USD", "JPY", "EUR"};
+        ArrayAdapter<String> adp = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, options);
+        adp.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerFrom.setAdapter(adp);
+        spinnerTo.setAdapter(adp);
 
-        if (isDark) {
-            root.setBackgroundColor(Color.parseColor("#FF4081")); // hot pink
-        } else {
-            root.setBackgroundColor(Color.parseColor("#FFF5F7")); // baby pink
-        }
+        applyTheme();
 
-        from = findViewById(R.id.fromCurrency);
-        to = findViewById(R.id.toCurrency);
-        amount = findViewById(R.id.amount);
-        result = findViewById(R.id.result);
-        convert = findViewById(R.id.convertBtn);
-        title = findViewById(R.id.title);
+        settingsBtn.setOnClickListener(v -> startActivity(new Intent(this, SettingsActivity.class)));
 
-        // TEXT COLOR SWITCH
-        if (isDark) {
-            title.setTextColor(Color.parseColor("#FCE4EC"));
-            result.setTextColor(Color.parseColor("#FCE4EC"));
-        } else {
-            title.setTextColor(Color.parseColor("#880E4F"));
-            result.setTextColor(Color.parseColor("#880E4F"));
-        }
+        convertBtn.setOnClickListener(v -> {
+            String val = amountInput.getText().toString();
+            if (val.isEmpty()) return;
+            double amount = Double.parseDouble(val);
+            String from = spinnerFrom.getSelectedItem().toString();
+            String to = spinnerTo.getSelectedItem().toString();
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_dropdown_item, currencies);
+            double inUSD = 0;
+            if (from.equals("INR")) inUSD = amount / 83.0;
+            else if (from.equals("JPY")) inUSD = amount / 151.0;
+            else if (from.equals("EUR")) inUSD = amount / 0.92;
+            else inUSD = amount;
 
-        from.setAdapter(adapter);
-        to.setAdapter(adapter);
+            double result = 0;
+            if (to.equals("INR")) result = inUSD * 83.0;
+            else if (to.equals("JPY")) result = inUSD * 151.0;
+            else if (to.equals("EUR")) result = inUSD * 0.92;
+            else result = inUSD;
 
-        convert.setOnClickListener(v -> convertCurrency());
-
-        // SETTINGS ICON
-        ImageView settingsBtn = findViewById(R.id.settingsBtn);
-        settingsBtn.setOnClickListener(v -> {
-            startActivity(new Intent(MainActivity.this, SettingsActivity.class));
+            resultText.setText(String.format("%.2f", result));
         });
     }
 
-    void convertCurrency() {
-        if (amount.getText().toString().isEmpty()) {
-            result.setText("Enter amount");
-            return;
-        }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        applyTheme();
+    }
 
-        String f = from.getSelectedItem().toString();
-        String t = to.getSelectedItem().toString();
+    private void applyTheme() {
+        SharedPreferences sp = getSharedPreferences("ThemePrefs", MODE_PRIVATE);
+        boolean dark = sp.getBoolean("dark", false);
+        String bgColor = dark ? "#D90166" : "#FFB7CE";
+        String txtColor = dark ? "#FFB7CE" : "#880E4F";
 
-        double amt = Double.parseDouble(amount.getText().toString());
-        double rate = 1;
-
-        if (f.equals("INR") && t.equals("USD")) rate = 0.012;
-        else if (f.equals("USD") && t.equals("INR")) rate = 82.7;
-
-        double res = amt * rate;
-        result.setText("Converted: " + res);
+        mainLayout.setBackgroundColor(Color.parseColor(bgColor));
+        titleText.setTextColor(Color.parseColor(txtColor));
+        equalSign.setTextColor(Color.parseColor(txtColor));
+        convertBtn.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor(txtColor)));
+        convertBtn.setTextColor(Color.parseColor(bgColor));
+        if(dark) settingsBtn.setColorFilter(Color.parseColor("#FFB7CE"));
+        else settingsBtn.setColorFilter(null);
     }
 }
