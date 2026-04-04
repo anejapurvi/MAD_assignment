@@ -29,7 +29,7 @@
         android:id="@+id/modeToggle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Dark Hot Pink Mode"
+        android:text="Dark Mode"
         android:textSize="20sp"
         android:textStyle="bold"
         android:textColor="#880E4F"

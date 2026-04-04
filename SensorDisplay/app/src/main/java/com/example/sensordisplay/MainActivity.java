@@ -11,7 +11,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 /**
  * Q3: Sensor Data Display Application
- * Author: Purvi Aneja
  * Sensors: Accelerometer, Light, Proximity
  */
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
